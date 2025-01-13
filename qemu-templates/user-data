@@ -1,0 +1,41 @@
+#cloud-config
+# Note: Leave the first line alone, you must have #cloud-config at the top per cloud-init's documentation, otherwise it won't work
+hostname: ubuntu-2404-template
+manage_etc_hosts: true
+fqdn: ubuntu-2404-template
+# This key will be assigned to the default 'ubuntu' user
+ssh_authorized_keys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILmXAJApaeMKh0E8nA0s3qM6+R5f/4gFp4TO4ioHn74C dwallace@macbook
+chpasswd:
+  expire: False
+# Add as many users as you'd like, but I prefer to just add an ansible service account for future provisioning
+users:
+  - default
+  - name: ansible
+    groups: sudo
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILmXAJApaeMKh0E8nA0s3qM6+R5f/4gFp4TO4ioHn74C dwallace@macbook
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKvOb7rLdvMgg+oyI3jsnJVpiOyJUMMm/Ei1l769+Ah5 dwallace@frmwrk
+# You may add packages here but I would suggest doing a majority of your provisioning with something like ansible or salt
+# Since I am using this primarily for virtualization with qemu images, we install the qemu-guest-agent
+# cloud-initramfs-growroot will allow you to expand the root disk upon reboot
+# cockpit allows for access to the system on 9090 via a webgui
+packages:
+  - qemu-guest-agent
+  - cloud-initramfs-growroot
+  - cockpit
+package_upgrade: true
+groups: 
+  - docker
+  - lpadmin
+# These commands will only run on first boot. Below we disable password auth via SSH and restart ssh & cockpit services
+runcmd:
+  - sed -i -e /^PermitRootLogin/s/^.*$/PermitRootLogin no/ /etc/ssh/sshd_config
+  - sed -i s|[#]*PasswordAuthentication yes|PasswordAuthentication no|g /etc/ssh/sshd_config
+  - sed -i s|UsePAM yes|UsePAM no|g /etc/ssh/sshd_config
+  - restart ssh
+  - restart cockpit
+  - timedatectl set-timezone America/New_York
+  - reboot
