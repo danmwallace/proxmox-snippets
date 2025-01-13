@@ -5,13 +5,20 @@ manage_etc_hosts: true
 fqdn: ubuntu-2404-template
 # This key will be assigned to the default 'ubuntu' user
 ssh_authorized_keys:
-  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILmXAJApaeMKh0E8nA0s3qM6+R5f/4gFp4TO4ioHn74C dwallace@macbook
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKvOb7rLdvMgg+oyI3jsnJVpiOyJUMMm/Ei1l769+Ah5 dwallace@frmwrk
 chpasswd:
   expire: False
 # Add as many users as you'd like, but I prefer to just add an ansible service account for future provisioning
 users:
   - default
   - name: ansible
+    groups: sudo
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILmXAJApaeMKh0E8nA0s3qM6+R5f/4gFp4TO4ioHn74C dwallace@macbook
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKvOb7rLdvMgg+oyI3jsnJVpiOyJUMMm/Ei1l769+Ah5 dwallace@frmwrk
+  - name: dwallace
     groups: sudo
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     shell: /bin/bash
